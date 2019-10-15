@@ -1,11 +1,9 @@
-import 'package:destini_challenge_starting/game_brain.dart';
 import 'package:flutter/material.dart';
-import 'story_brain.dart';
 import 'game_brain.dart';
 
-void main() => runApp(Destini());
+void main() => runApp(DiceDungeon());
 
-class Destini extends StatelessWidget {
+class DiceDungeon extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData.dark(),
@@ -15,13 +13,15 @@ class Destini extends StatelessWidget {
 }
 
 GameBrain gameBrain = GameBrain();
-//StoryBrain storyBrain = StoryBrain();
 
 class StoryPage extends StatefulWidget {
   _StoryPageState createState() => _StoryPageState();
 }
 
 class _StoryPageState extends State<StoryPage> {
+  String monsterName = gameBrain.getMonsterName();
+  String hpBar = gameBrain.getMonsterHP();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,8 +32,8 @@ class _StoryPageState extends State<StoryPage> {
             fit: BoxFit.cover,
           ),
         ),
-        padding: EdgeInsets.symmetric(vertical: 50.0, horizontal: 15.0),
-        constraints: BoxConstraints.expand(),
+        padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 15.0),
+        //constraints: BoxConstraints.expand(),
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -42,7 +42,8 @@ class _StoryPageState extends State<StoryPage> {
                 flex: 1,
                 child: Center(
                   child: Text(
-                    'MonsterName',
+                    //'MonsterName',
+                    monsterName,
                     style: TextStyle(
                       fontSize: 25.0,
                     ),
@@ -53,7 +54,7 @@ class _StoryPageState extends State<StoryPage> {
                 flex: 1,
                 child: Center(
                   child: Text(
-                    'HP 15/20',
+                    hpBar,
                     style: TextStyle(
                       fontSize: 25.0,
                     ),
@@ -70,12 +71,16 @@ class _StoryPageState extends State<StoryPage> {
                 flex: 2,
                 child: FlatButton(
                   onPressed: () {
-                    //attack a monster
                     setState(() {
-                      //storyBrain.nextStory(1);
+                      gameBrain.damageMonster();
 
+                      if (gameBrain.isMonsterDead()) {
+                        gameBrain.nextMonster();
+                      }
+
+                      monsterName = gameBrain.getMonsterName();
+                      hpBar = gameBrain.getMonsterHP();
                     });
-
                   },
                   color: Colors.red,
                   child: Text(
@@ -86,7 +91,16 @@ class _StoryPageState extends State<StoryPage> {
                   ),
                 ),
               ),
-
+              Expanded(
+                child: Center(child: Row(
+                  children: <Widget>[
+                    Text(gameBrain.getHP()),
+                    Text(gameBrain.getHits()),
+                    Text(gameBrain.getProgress()),
+                  ],
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                ),),
+              ),
 
             ],
           ),
