@@ -77,9 +77,9 @@ class _StoryPageState extends State<StoryPage> {
                       if (gameBrain.isMonsterDead()) {
                         gameBrain.nextMonster();
                       }
-
                       monsterName = gameBrain.getMonsterName();
                       hpBar = gameBrain.getMonsterHP();
+
                     });
                   },
                   color: Colors.red,
@@ -101,6 +101,9 @@ class _StoryPageState extends State<StoryPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 ),),
               ),
+              Expanded(
+                child: Text(gameBrain.message()),
+              )
 
             ],
           ),
