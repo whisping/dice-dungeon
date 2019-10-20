@@ -51,10 +51,12 @@ class Trap extends Card {
 
 class Door extends Card {
   int hp;
+  int maxHP;
 
-  Door (String name, int hp) {
+  Door (String name, int maxHP) {
     this.name = name;
-    this.hp = hp;
+    this.maxHP = maxHP;
+    this.hp = maxHP;
     this.type = CardTypes.Door;
   }
 }

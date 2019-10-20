@@ -16,31 +16,36 @@ class GameBrain {
     Enemy('Goblin', 30, 6),
     Door('Wooden Door', 50),
     Trap('Trap', 10),
-    NPC('Tor', 5),
+    NPC('Healer', 5),
     Enemy('Blue Dragon', 100, 10),
   ];
+
+  String getEncounterImage() {
+    CardTypes type = _enemyList[progressCounter].type;
+    if (type == CardTypes.Door) {
+      return 'door.png';
+    } else {
+      return 'monster1.png';
+    }
+  }
 
   String getMonsterName() {
     return _enemyList[progressCounter].name;
   }
 
-  String getMonsterHP() {
+  List<int> getMonsterHP() {
     if (_enemyList[progressCounter].type == CardTypes.Enemy) {
       Enemy enemy = _enemyList[progressCounter];
-      return enemy.hp.toString() + ' / ' + enemy.maxHP.toString();
+      return [enemy.hp, enemy.maxHP];
     } else
       if ( _enemyList[progressCounter].type == CardTypes.Door ) {
         Door door = _enemyList[progressCounter];
-        return door.hp.toString();
+        return [door.hp, door.maxHP];
       }
       else {
-      return 'none HP';
+      return [0, 0];
     }
   }
-
-//  String getMaxHP() {
-//    return _enemyList[_progressCounter].maxHP.toString();
-//  }
 
   int roll(int dice) {
     int sum = 0;
@@ -164,7 +169,7 @@ class GameBrain {
   void restart() {
     progressCounter = 0;
     hp = maxPlayerHP;
-    hits = 10;
+    hits = 20;
   }
 
   void nextMonster() {
