@@ -1,162 +1,94 @@
-import 'package:destini_challenge_starting/main.dart';
-
 import 'card.dart';
-import 'dart:math';
+import 'roll.dart';
+import 'dungeon.dart';
 
 class GameBrain {
   int progressCounter = 0;
-  int maxPlayerHP = 80;
-  int hp = 80;
-  int hits = 20;
-
-
-  List<Card> _enemyList = [
-    Enemy('Slime', 20, 6),
-    Door('Small Door', 10),
-    Enemy('Goblin', 30, 6),
-    Door('Wooden Door', 50),
-    Trap('Trap', 10),
-    NPC('Healer', 5),
-    Enemy('Blue Dragon', 100, 10),
+  int maxPlayerHP = 180;
+  int hp = 180;
+  int hitsRemain = 100;
+  List<Creature> _enemyList = [];
+  List weapons = [
+    ['sword', 2, 6, 0, '2D6'],
+    ['mace', 1, 8, 3, '1D8+3']
   ];
+  int choosenWeapon = 0;
+
+  GameBrain() {
+    Deck deck = Deck(crab, 20, murl, 9, boss);
+    _enemyList = deck.cards;
+  }
+
+  void nextWeapon() {
+    (choosenWeapon == 0) ? choosenWeapon = 1 : choosenWeapon = 0;
+  }
 
   String getEncounterImage() {
-    CardTypes type = _enemyList[progressCounter].type;
-    if (type == CardTypes.Door) {
-      return 'door.png';
-    } else {
-      return 'monster1.png';
-    }
+    String name = _enemyList[progressCounter].name;
+    return name + '.png';
   }
 
   String getMonsterName() {
     return _enemyList[progressCounter].name;
   }
 
-  List<int> getMonsterHP() {
-    if (_enemyList[progressCounter].type == CardTypes.Enemy) {
-      Enemy enemy = _enemyList[progressCounter];
-      return [enemy.hp, enemy.maxHP];
-    } else
-      if ( _enemyList[progressCounter].type == CardTypes.Door ) {
-        Door door = _enemyList[progressCounter];
-        return [door.hp, door.maxHP];
-      }
-      else {
-      return [0, 0];
-    }
+  int getMonsterHP() {
+    return _enemyList[progressCounter].hp;
   }
 
-  int roll(int dice) {
-    int sum = 0;
-    int result = (Random().nextInt(dice) + 1);
-    if (result == dice) {
-      sum += dice + roll(dice);
-      print('crit');
-    } else if (result == 1) {
-      sum = 0;
-      print('miss');
-    } else {
-      sum += result;
+  String getDmgDice() {
+    String res = '1D' + _enemyList[progressCounter].dmgDice.toString();
+    if (_enemyList[progressCounter].dmgMod != 0) {
+      res += '+' + _enemyList[progressCounter].dmgMod.toString();
     }
-    return sum;
+
+    return res;
   }
 
   void damageMonster() {
-    Card card = _enemyList[progressCounter];
-    CardTypes type = card.type;
-    // door
-    if (type == CardTypes.Door) {
-      if (hits > 0) {
-        Door enemy = card;
-        int dmg1 = roll(6);
-        int dmg2 = roll(6);
-        int dmg = dmg1 + dmg2;
-        enemy.hp -= dmg;
-        _message = 'door takes $dmg($dmg1 + $dmg2)';
-        print(_message);
-        hits -= 1;
-      }
-    }
-    // enemy
-    if (type == CardTypes.Enemy) {
-      Enemy enemy = card;
-      if (hits > 0) {
-        int dmg1 = roll(6);
-        int dmg2 = roll(6);
-        int dmg = dmg1 + dmg2;
-        enemy.hp -= dmg;
-        _message = 'monster takes $dmg($dmg1 + $dmg2), ';
-        hits -= 1;
-      }
-      int dice = enemy.dice;
-      int playerDmg = roll(dice);
-      hp -= playerDmg;
-      _message += 'player takes $playerDmg';
-      print(_message);
-    }
-    //trap
-    if (type == CardTypes.Trap) {
-      Trap trap = card;
-      int dice = trap.dice;
-      int playerDmg = roll(dice);
-      hp -= playerDmg;
-      _message = 'player takes $playerDmg';
-      print(_message);
-    }
-    // NPC
-    if (type == CardTypes.NPC) {
-      NPC npc = card;
-      hp += npc.healAmount;
-      hits += 5;
+    Creature card = _enemyList[progressCounter];
 
-      _message = 'He heals you ' + npc.healAmount.toString() + ' and give 5 hits.';
-      print(_message);
+    if (hitsRemain > 0) {
+      var weapon = weapons[choosenWeapon];
+      int numOfDices = weapon[1];
+      int dmg = 0;
+      for (int i = 0; i < numOfDices; i += 1) {
+        dmg += roll(weapon[2]);
+      }
+      dmg += weapon[3];
+      card.hp -= dmg;
+      _message = 'monster takes $dmg, ';
+      hitsRemain -= 1;
     }
+    int playerDmg = card.giveDamage();
+    hp -= playerDmg;
+    _message += 'player takes $playerDmg';
+    print(_message);
   }
 
   bool isMonsterDead() {
-    Card card = _enemyList[progressCounter];
-    CardTypes type = card.type;
+    Creature card = _enemyList[progressCounter];
     // enemy
-    if (type == CardTypes.Enemy) {
-      Enemy enemy = card;
-      if (enemy.hp <= 0) {
-        print('killed ' + enemy.name);
-        return true;
-      } else {
-        return false;
-      }
-    }
-
-    // door
-
-    if (type == CardTypes.Door) {
-      Door door = card;
-      if (door.hp <= 0) {
-        print('Break through ' + door.name);
-        return true;
-      } else {
-        return false;
-      }
-    }
-
-    // trap or NPC
-    if (type == CardTypes.Trap || type == CardTypes.NPC) {
-        return true;
+    if (card.hp <= 0) {
+      print('killed ' + card.name);
+      return true;
+    } else {
+      return false;
     }
   }
 
   String getProgress() {
-    return 'Progress: ' + (progressCounter + 1).toString() + '/' + (_enemyList.length).toString();
+    return (progressCounter + 1).toString() +
+        '/' +
+        (_enemyList.length).toString();
   }
 
   String getHP() {
-    return 'HP: $hp/$maxPlayerHP';
+    return '$hp/$maxPlayerHP';
   }
 
   String getHits() {
-    return 'Hits left: $hits';
+    return 'Hits left: $hitsRemain';
   }
 
   String _message = 'place for messages';
@@ -169,7 +101,7 @@ class GameBrain {
   void restart() {
     progressCounter = 0;
     hp = maxPlayerHP;
-    hits = 20;
+    hitsRemain = 20;
   }
 
   void nextMonster() {

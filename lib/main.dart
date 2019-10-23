@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'game_brain.dart';
+import 'cardWidgets.dart';
+import 'panel.dart';
 
 void main() => runApp(DiceDungeon());
 
@@ -20,9 +22,7 @@ class StoryPage extends StatefulWidget {
 
 class _StoryPageState extends State<StoryPage> {
   String monsterName = gameBrain.getMonsterName();
-  int greenHP = gameBrain.getMonsterHP()[0];
-  String hpBar = gameBrain.getMonsterHP()[0].toString() + ' / ' + gameBrain.getMonsterHP()[1].toString();
-  int blackHP = gameBrain.getMonsterHP()[1] - gameBrain.getMonsterHP()[0];
+  String hpBar = gameBrain.getMonsterHP().toString();
   String monsterImage = gameBrain.getEncounterImage();
 
   @override
@@ -41,77 +41,62 @@ class _StoryPageState extends State<StoryPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-
               Expanded(
                 flex: 1,
                 child: Center(
                   child: Text(
-                    monsterName + ' ' + hpBar,
+                    'First Dungeon',
                     style: TextStyle(
                       fontSize: 25.0,
                     ),
                   ),
                 ),
               ),
-              Expanded(child: Row(children: <Widget>[
-                Expanded(child: Container(color: Colors.green,
-                  //child: Text(hpBar),
-                ), flex: greenHP,),
-
-                Expanded(child: Container(color: Colors.black), flex: blackHP,),
-              ],
-
-              )
-
-              ,),
               Expanded(
-                flex: 6,
-                child: Center(
-                  child: Image(image: AssetImage('images/' + monsterImage),),
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: FlatButton(
-                  onPressed: () {
-                    setState(() {
-                      gameBrain.damageMonster();
-
-                      if (gameBrain.isMonsterDead()) {
-                        gameBrain.nextMonster();
-                        monsterName = gameBrain.getMonsterName();
-                        monsterImage = gameBrain.getEncounterImage();
-                      }
-
-                      hpBar = gameBrain.getMonsterHP()[0].toString() + ' / ' + gameBrain.getMonsterHP()[1].toString();
-                      greenHP = gameBrain.getMonsterHP()[0];
-                      blackHP = gameBrain.getMonsterHP()[1] - gameBrain.getMonsterHP()[0];
-
-                    });
-                  },
-                  color: Colors.red,
-                  child: Text(
-                    'ATTACK!',
-                    style: TextStyle(
-                      fontSize: 20.0,
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Center(child: Row(
+                flex: 8,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    Text(gameBrain.getHP()),
-                    Text(gameBrain.getHits()),
-                    Text(gameBrain.getProgress()),
+                    BackCardWidget(
+                      progress: gameBrain.getProgress(),
+                    ),
+                    CardWidget(
+                      monsterImage: monsterImage,
+                      monsterName: monsterName,
+                      hp: hpBar,
+                      dmgDice: gameBrain.getDmgDice(),
+                    ),
                   ],
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                ),),
+                ),
               ),
               Expanded(
                 child: Text(gameBrain.message()),
-              )
+              ),
+              Expanded(
+                  flex: 3,
+                  child: PanelWidget(
+                    hp: gameBrain.getHP(),
+                    hitsLeft: gameBrain.getHits(),
+                    weapon: gameBrain.weapons[gameBrain.choosenWeapon],
+                    onPressedWeapon: () {
+                      setState(() {
+                        gameBrain.nextWeapon();
+                      });
+                    },
+                    onPressed: () {
+                      setState(() {
+                        gameBrain.damageMonster();
 
+                        if (gameBrain.isMonsterDead()) {
+                          gameBrain.nextMonster();
+                          monsterName = gameBrain.getMonsterName();
+                          monsterImage = gameBrain.getEncounterImage();
+                        }
+
+                        hpBar = gameBrain.getMonsterHP().toString();
+                      });
+                    },
+                  )),
             ],
           ),
         ),
@@ -119,5 +104,3 @@ class _StoryPageState extends State<StoryPage> {
     );
   }
 }
-
-
